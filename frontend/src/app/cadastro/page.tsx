@@ -3,7 +3,7 @@ export default function CadastroPage() {
     <main className="cadastro-page">
       <section className="cadastro-card">
         <a href="/" className="cadastro-back">
-          <- Voltar
+          {'<-'} Voltar
         </a>
 
         <h1>Crie sua loja gratis</h1>
