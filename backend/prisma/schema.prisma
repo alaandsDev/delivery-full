@@ -8,10 +8,118 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum UserRole {
+  PLATFORM_ADMIN
+  MERCHANT
+  CUSTOMER
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELED
+}
+
 model MerchantLead {
   id        String   @id @default(cuid())
   name      String
   email     String   @unique
   phone     String?
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         UserRole  @default(MERCHANT)
+  ownedStore   Store?
+  createdAt    DateTime  @default(now())
+}
+
+model Store {
+  id            String         @id @default(cuid())
+  name          String
+  slug          String         @unique
+  description   String?
+  ownerId       String         @unique
+  owner         User           @relation(fields: [ownerId], references: [id])
+  categories    Category[]
+  products      Product[]
+  orders        Order[]
+  notifications Notification[]
+  createdAt     DateTime       @default(now())
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  storeId   String
+  store     Store     @relation(fields: [storeId], references: [id])
+  name      String
+  products  Product[]
+  createdAt DateTime  @default(now())
+}
+
+model Product {
+  id          String    @id @default(cuid())
+  storeId     String
+  store       Store     @relation(fields: [storeId], references: [id])
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id])
+  name        String
+  description String?
+  priceCents  Int
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  storeId      String
+  store        Store       @relation(fields: [storeId], references: [id])
+  customerName String
+  customerPhone String
+  status       OrderStatus @default(PENDING)
+  totalCents   Int
+  items        OrderItem[]
+  payment      Payment?
+  createdAt    DateTime    @default(now())
+}
+
+model OrderItem {
+  id             String   @id @default(cuid())
+  orderId        String
+  order          Order    @relation(fields: [orderId], references: [id])
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id])
+  name           String
+  quantity       Int
+  unitPriceCents Int
+}
+
+model Payment {
+  id         String   @id @default(cuid())
+  orderId    String   @unique
+  order      Order    @relation(fields: [orderId], references: [id])
+  provider   String
+  status     String
+  externalId String?
+  amountCents Int
+  createdAt  DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id])
+  type      String
+  title     String
+  message   String
+  readAt    DateTime?
   createdAt DateTime @default(now())
 }
