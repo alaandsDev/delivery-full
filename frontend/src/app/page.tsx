@@ -5,7 +5,7 @@
         <a href="/" className="logo">
           Pede<span>Mais</span>
         </a>
-        <a href="#cadastro" className="nav-cta">
+        <a href="/cadastro" className="nav-cta">
           Criar loja gratis -&gt;
         </a>
       </nav>
@@ -24,7 +24,7 @@
             Tenha seu proprio cardapio digital, receba pedidos direto no Pix e fique com <strong>100% do lucro</strong>. Sua loja no ar em 5 minutos.
           </p>
           <div className="hero-cta-group">
-            <a href="#cadastro" className="btn-primary">
+            <a href="/cadastro" className="btn-primary">
               Criar minha loja gratis
             </a>
             <a href="#como-funciona" className="btn-ghost">
