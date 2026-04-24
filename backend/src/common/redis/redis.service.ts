@@ -12,18 +12,18 @@ export class RedisService implements OnModuleDestroy {
   readonly client: Redis;
 
   constructor(private config: ConfigService) {
-    const redisUrl = config.get<string>('REDIS_URL');
+    const redisUrl = config.get<string>('REDIS_URL') ?? '';
 
     // Upstash usa rediss:// (TLS obrigatório no free tier)
     this.client = new Redis(redisUrl, {
       tls: redisUrl?.startsWith('rediss://') ? {} : undefined,
       maxRetriesPerRequest: 3,
-      retryStrategy: (times) => Math.min(times * 100, 3000),
+      retryStrategy: (times: number) => Math.min(times * 100, 3000),
       lazyConnect: false,
     });
 
     this.client.on('connect', () => this.logger.log('✅ Redis (Upstash) conectado'));
-    this.client.on('error', (e) => this.logger.error('Redis error:', e.message));
+    this.client.on('error', (e: Error) => this.logger.error('Redis error:', e.message));
   }
 
   async onModuleDestroy() {

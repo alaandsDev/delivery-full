@@ -13,9 +13,9 @@ export class EmailService {
   private fromName: string;
 
   constructor(private config: ConfigService) {
-    this.apiKey    = config.get('RESEND_API_KEY');
-    this.fromEmail = config.get('FROM_EMAIL') || 'onboarding@resend.dev';
-    this.fromName  = config.get('FROM_NAME') || 'Delivery SaaS';
+    this.apiKey = config.get<string>('RESEND_API_KEY') ?? '';
+    this.fromEmail = config.get<string>('FROM_EMAIL') ?? 'onboarding@resend.dev';
+    this.fromName = config.get<string>('FROM_NAME') ?? 'Delivery SaaS';
   }
 
   private async send(to: string, subject: string, html: string): Promise<boolean> {
@@ -46,8 +46,9 @@ export class EmailService {
       }
 
       return true;
-    } catch (err) {
-      this.logger.error('Erro ao enviar email:', err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro desconhecido';
+      this.logger.error('Erro ao enviar email:', message);
       return false;
     }
   }
