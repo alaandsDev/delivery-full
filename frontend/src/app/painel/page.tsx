@@ -1,68 +1,69 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
-type SavedUser = {
-  name: string;
-  email: string;
-  trialEndsAt: string | null;
-};
-
-type SavedStore = {
-  name: string;
-  slug: string;
-};
+import { useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function PainelPage() {
-  const [user, setUser] = useState<SavedUser | null>(null);
-  const [store, setStore] = useState<SavedStore | null>(null);
+  const { user, store, ready, logout, trialDaysLeft, trialExpired } = useAuth();
 
   useEffect(() => {
-    const rawUser = localStorage.getItem('pm_user');
-    const rawStore = localStorage.getItem('pm_store');
-    if (rawUser) setUser(JSON.parse(rawUser));
-    if (rawStore) setStore(JSON.parse(rawStore));
-  }, []);
+    if (ready && !user) window.location.href = '/login';
+  }, [ready, user]);
+
+  if (!ready || !user || !store) return <div className="painel-loading"><div className="cardapio-spinner" /></div>;
+
+  const cardapioUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/loja/${store.slug}`;
 
   return (
-    <main className="cadastro-page">
-      <section className="cadastro-card">
-        <h1>Painel do Lojista</h1>
-        <p>Conta criada com sucesso.</p>
+    <div className="painel-layout">
+      <aside className="painel-sidebar">
+        <a href="/" className="logo" style={{ textDecoration: 'none', fontSize: 20, display: 'block', marginBottom: 32 }}>
+          Pede<span style={{ color: 'var(--preto)' }}>Mais</span>
+        </a>
+        <nav className="painel-nav">
+          <a href="/painel" className="painel-nav-item active">🏠 Início</a>
+          <a href="/painel/pedidos" className="painel-nav-item">📋 Pedidos</a>
+          <a href="/painel/produtos" className="painel-nav-item">🍔 Produtos</a>
+        </nav>
+        <button className="painel-logout" onClick={logout}>Sair →</button>
+      </aside>
 
-        <div className="painel-box">
-          <p>
-            <strong>Usuario:</strong>
-            {' '}
-            {user?.name ?? '-'}
-          </p>
-          <p>
-            <strong>Email:</strong>
-            {' '}
-            {user?.email ?? '-'}
-          </p>
-          <p>
-            <strong>Loja:</strong>
-            {' '}
-            {store?.name ?? '-'}
-          </p>
-          <p>
-            <strong>Slug:</strong>
-            {' '}
-            {store?.slug ?? '-'}
-          </p>
-          <p>
-            <strong>Trial ate:</strong>
-            {' '}
-            {user?.trialEndsAt ? new Date(user.trialEndsAt).toLocaleString('pt-BR') : '-'}
-          </p>
+      <main className="painel-content">
+        <div className="painel-topbar">
+          <div>
+            <h1 className="painel-page-title">Olá, {user.name.split(' ')[0]} 👋</h1>
+            <p style={{ color: '#888', fontSize: 14 }}>{store.name}</p>
+          </div>
+          {trialExpired ? (
+            <span className="painel-badge danger">Trial expirado</span>
+          ) : (
+            <span className="painel-badge">{trialDaysLeft} dia{trialDaysLeft !== 1 ? 's' : ''} de trial</span>
+          )}
         </div>
 
-        <a className="btn-primary" href="/">
-          Voltar para landing
-        </a>
-      </section>
-    </main>
+        {trialExpired && (
+          <div className="painel-alert danger">
+            ⚠️ Seu período de teste expirou. Para continuar recebendo pedidos, assine um plano.
+          </div>
+        )}
+
+        <div className="painel-cards">
+          <div className="painel-card">
+            <p className="painel-card-label">Cardápio público</p>
+            <p className="painel-card-value" style={{ fontSize: 14, wordBreak: 'break-all' }}>{cardapioUrl}</p>
+            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+              <a href={cardapioUrl} target="_blank" rel="noopener noreferrer" className="painel-btn-sm">Ver cardápio ↗</a>
+              <button className="painel-btn-sm ghost" onClick={() => navigator.clipboard.writeText(cardapioUrl)}>Copiar link</button>
+            </div>
+          </div>
+
+          <div className="painel-card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <p className="painel-card-label">Atalhos rápidos</p>
+            <a href="/painel/pedidos" className="painel-quicklink">📋 Ver pedidos em aberto</a>
+            <a href="/painel/produtos" className="painel-quicklink">➕ Adicionar produto</a>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }
-

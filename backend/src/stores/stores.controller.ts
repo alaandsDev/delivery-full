@@ -28,6 +28,16 @@ export class StoresController {
     return this.prisma.store.findMany({ orderBy: { createdAt: 'desc' } });
   }
 
+  @Get('by-owner/:ownerId')
+  byOwner(@Param('ownerId') ownerId: string) {
+    return this.prisma.store.findUnique({ where: { ownerId } });
+  }
+
+  @Get('by-slug/:slug')
+  bySlug(@Param('slug') slug: string) {
+    return this.prisma.store.findUnique({ where: { slug } });
+  }
+
   @Get(':id')
   byId(@Param('id') id: string) {
     return this.prisma.store.findUnique({ where: { id } });
