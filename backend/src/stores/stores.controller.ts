@@ -1,6 +1,9 @@
-﻿import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, ForbiddenException } from '@nestjs/common';
 import { IsOptional, IsString } from 'class-validator';
 import { PrismaService } from '../prisma/prisma.service';
+import { Public } from '../common/guards/jwt.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { JwtPayload } from '../common/guards/jwt.guard';
 
 class CreateStoreDto {
   @IsString() name!: string;
@@ -18,24 +21,25 @@ class UpdateStoreDto {
 export class StoresController {
   constructor(private readonly prisma: PrismaService) {}
 
+  // Pública — chamada logo após o registro
+  @Public()
   @Post()
   create(@Body() dto: CreateStoreDto) {
     return this.prisma.store.create({ data: dto });
   }
 
-  @Get()
-  list() {
-    return this.prisma.store.findMany({ orderBy: { createdAt: 'desc' } });
-  }
-
-  @Get('by-owner/:ownerId')
-  byOwner(@Param('ownerId') ownerId: string) {
-    return this.prisma.store.findUnique({ where: { ownerId } });
-  }
-
+  // Pública — cardápio precisa buscar por slug sem auth
+  @Public()
   @Get('by-slug/:slug')
   bySlug(@Param('slug') slug: string) {
     return this.prisma.store.findUnique({ where: { slug } });
+  }
+
+  // Pública — login precisa buscar loja do usuário
+  @Public()
+  @Get('by-owner/:ownerId')
+  byOwner(@Param('ownerId') ownerId: string) {
+    return this.prisma.store.findUnique({ where: { ownerId } });
   }
 
   @Get(':id')
@@ -44,7 +48,13 @@ export class StoresController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateStoreDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateStoreDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    const store = await this.prisma.store.findUnique({ where: { id } });
+    if (!store || store.ownerId !== user.id) throw new ForbiddenException();
     return this.prisma.store.update({ where: { id }, data: dto });
   }
 }

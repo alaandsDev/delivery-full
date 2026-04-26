@@ -25,7 +25,10 @@ export default function PainelPage() {
           <a href="/painel/pedidos" className="painel-nav-item">📋 Pedidos</a>
           <a href="/painel/produtos" className="painel-nav-item">🍔 Produtos</a>
         </nav>
-        <button className="painel-logout" onClick={logout}>Sair →</button>
+        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <a href="/assinar" className="painel-nav-item" style={{ color: 'var(--laranja)', fontWeight: 600 }}>⭐ Planos</a>
+          <button className="painel-logout" onClick={logout}>Sair →</button>
+        </div>
       </aside>
 
       <main className="painel-content">
@@ -35,23 +38,33 @@ export default function PainelPage() {
             <p style={{ color: '#888', fontSize: 14 }}>{store.name}</p>
           </div>
           {trialExpired ? (
-            <span className="painel-badge danger">Trial expirado</span>
+            <a href="/assinar" className="painel-badge danger" style={{ textDecoration: 'none' }}>Trial expirado — Assinar agora →</a>
           ) : (
-            <span className="painel-badge">{trialDaysLeft} dia{trialDaysLeft !== 1 ? 's' : ''} de trial</span>
+            <a href="/assinar" className="painel-badge" style={{ textDecoration: 'none' }}>
+              {trialDaysLeft} dia{trialDaysLeft !== 1 ? 's' : ''} de trial — Ver planos
+            </a>
           )}
         </div>
 
         {trialExpired && (
           <div className="painel-alert danger">
-            ⚠️ Seu período de teste expirou. Para continuar recebendo pedidos, assine um plano.
+            ⚠️ Seu período de teste expirou. Para continuar recebendo pedidos,{' '}
+            <a href="/assinar" style={{ color: '#c62828', fontWeight: 600 }}>assine um plano agora</a>.
+          </div>
+        )}
+
+        {!trialExpired && trialDaysLeft <= 1 && (
+          <div className="painel-alert">
+            ⏳ Seu trial acaba {trialDaysLeft === 0 ? 'hoje' : 'amanhã'}!{' '}
+            <a href="/assinar" style={{ color: 'var(--laranja)', fontWeight: 600 }}>Assine agora para não perder pedidos →</a>
           </div>
         )}
 
         <div className="painel-cards">
           <div className="painel-card">
             <p className="painel-card-label">Cardápio público</p>
-            <p className="painel-card-value" style={{ fontSize: 14, wordBreak: 'break-all' }}>{cardapioUrl}</p>
-            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <p style={{ fontSize: 13, color: '#888', wordBreak: 'break-all', margin: '4px 0 12px' }}>{cardapioUrl}</p>
+            <div style={{ display: 'flex', gap: 8 }}>
               <a href={cardapioUrl} target="_blank" rel="noopener noreferrer" className="painel-btn-sm">Ver cardápio ↗</a>
               <button className="painel-btn-sm ghost" onClick={() => navigator.clipboard.writeText(cardapioUrl)}>Copiar link</button>
             </div>
@@ -61,6 +74,7 @@ export default function PainelPage() {
             <p className="painel-card-label">Atalhos rápidos</p>
             <a href="/painel/pedidos" className="painel-quicklink">📋 Ver pedidos em aberto</a>
             <a href="/painel/produtos" className="painel-quicklink">➕ Adicionar produto</a>
+            <a href="/assinar" className="painel-quicklink">⭐ Ver planos e assinar</a>
           </div>
         </div>
       </main>

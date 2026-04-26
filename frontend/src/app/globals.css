@@ -423,3 +423,85 @@ footer { background: var(--preto); color: rgba(255,255,255,0.4); text-align: cen
   .painel-content { padding: 20px 16px; }
   .painel-topbar { flex-direction: column; }
 }
+
+/* ===== TOAST ===== */
+.painel-toast {
+  position: fixed; top: 20px; right: 20px; z-index: 999;
+  background: var(--preto); color: #fff;
+  padding: 14px 20px; border-radius: 14px;
+  font-size: 14px; font-weight: 500;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  animation: slideIn 0.3s ease;
+}
+@keyframes slideIn { from { transform: translateY(-12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* ===== PÁGINA DE ASSINATURA ===== */
+.assinar-page { min-height: 100vh; background: var(--branco); padding-bottom: 80px; }
+
+.painel-assinar-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 40px; border-bottom: 1px solid rgba(0,0,0,0.07);
+}
+
+.assinar-hero { text-align: center; padding: 60px 20px 48px; max-width: 640px; margin: 0 auto; }
+.assinar-tag {
+  display: inline-block; background: #fff0eb; color: var(--laranja);
+  border: 1px solid rgba(255,77,0,0.2); padding: 5px 14px; border-radius: 100px;
+  font-size: 13px; font-weight: 600; margin-bottom: 20px;
+}
+.assinar-tag.danger { background: #fff0f0; color: #c62828; border-color: rgba(198,40,40,0.2); }
+.assinar-title { font-family: 'Syne', sans-serif; font-size: clamp(28px, 5vw, 44px); font-weight: 800; line-height: 1.15; margin-bottom: 16px; }
+.assinar-sub { font-size: 17px; color: #666; line-height: 1.6; }
+
+.assinar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.assinar-card {
+  background: #fff; border: 1px solid rgba(0,0,0,0.09); border-radius: 20px;
+  padding: 28px; display: flex; flex-direction: column; gap: 0;
+  position: relative;
+}
+.assinar-card.destaque {
+  border-color: var(--laranja); border-width: 2px;
+  box-shadow: 0 8px 40px rgba(255,77,0,0.12);
+}
+.assinar-popular {
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+  background: var(--laranja); color: #fff;
+  padding: 4px 16px; border-radius: 100px; font-size: 12px; font-weight: 700;
+  white-space: nowrap;
+}
+.assinar-plan-name { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+.assinar-plan-desc { font-size: 14px; color: #888; margin-bottom: 20px; }
+.assinar-plan-price { display: flex; align-items: baseline; gap: 4px; margin-bottom: 24px; }
+.assinar-price-valor { font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800; }
+.assinar-price-periodo { font-size: 15px; color: #888; }
+
+.assinar-features { list-style: none; padding: 0; margin: 0 0 28px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.assinar-features li { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #444; }
+.assinar-check { color: var(--laranja); font-weight: 700; font-size: 15px; flex-shrink: 0; }
+
+.assinar-cta {
+  width: 100%; padding: 13px; border-radius: 100px;
+  font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; border: none;
+}
+.assinar-cta.primary { background: var(--laranja); color: #fff; }
+.assinar-cta.ghost { background: var(--cinza); color: var(--preto); }
+.assinar-cta:hover { opacity: 0.88; }
+
+.assinar-garantia {
+  text-align: center; padding: 40px 20px 0;
+  font-size: 13px; color: #aaa;
+}
+
+@media (max-width: 768px) {
+  .painel-assinar-nav { padding: 16px 20px; }
+  .assinar-hero { padding: 40px 20px 32px; }
+  .assinar-grid { grid-template-columns: 1fr; padding: 0 16px; }
+}

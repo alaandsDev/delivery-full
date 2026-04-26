@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useStoreSocket } from '@/hooks/useStoreSocket';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? '';
 
@@ -44,44 +45,76 @@ const STATUS_NEXT_LABEL: Record<string, string> = {
 function fmt(cents: number) {
   return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
-
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
 export default function PedidosPage() {
-  const { user, store, ready } = useAuth();
+  const { user, store, token, ready } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('ALL');
   const [updating, setUpdating] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (ready && !user) window.location.href = '/login';
   }, [ready, user]);
 
+  function authHeaders() {
+    return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+  }
+
   const fetchOrders = useCallback(async () => {
-    if (!store) return;
-    const res = await fetch(`${API}/orders?storeId=${store.id}`);
-    const data = await res.json();
-    setOrders(data);
+    if (!store || !token) return;
+    const res = await fetch(`${API}/orders?storeId=${store.id}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (res.ok) setOrders(await res.json());
     setLoading(false);
-  }, [store]);
+  }, [store, token]);
 
-  useEffect(() => {
-    if (store) fetchOrders();
-  }, [store, fetchOrders]);
+  useEffect(() => { if (store && token) fetchOrders(); }, [store, token, fetchOrders]);
 
-  // Polling a cada 15s
-  useEffect(() => {
-    if (!store) return;
-    const interval = setInterval(fetchOrders, 15000);
-    return () => clearInterval(interval);
-  }, [store, fetchOrders]);
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 5000);
+  }
+
+  // WebSocket — novo pedido
+  useStoreSocket({
+    storeId: store?.id,
+    token: token,
+    onNewOrder: (order) => {
+      setOrders((prev) => {
+        if (prev.find((o) => o.id === order.id)) return prev;
+        return [order as unknown as Order, ...prev];
+      });
+      showToast(`🛎️ Novo pedido de ${order.customerName} — ${fmt(order.totalCents)}`);
+      // Som de notificação (beep simples via Web Audio API)
+      try {
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.4);
+      } catch {}
+    },
+    onOrderUpdated: (order) => {
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, ...order } : o)));
+    },
+  });
 
   async function updateStatus(orderId: string, newStatus: string) {
     setUpdating(orderId);
-    await fetch(`${API}/orders/${orderId}/status/${newStatus}`, { method: 'PATCH' });
+    await fetch(`${API}/orders/${orderId}/status/${newStatus}`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+    });
     await fetchOrders();
     setUpdating(null);
   }
@@ -110,6 +143,8 @@ export default function PedidosPage() {
       </aside>
 
       <main className="painel-content">
+        {toast && <div className="painel-toast">{toast}</div>}
+
         <div className="painel-topbar">
           <div>
             <h1 className="painel-page-title">Pedidos</h1>
@@ -118,14 +153,9 @@ export default function PedidosPage() {
           <button className="painel-btn-sm" onClick={fetchOrders}>↻ Atualizar</button>
         </div>
 
-        {/* Filtros */}
         <div className="painel-filter-row">
           {['ALL', 'PENDING', 'CONFIRMED', 'PREPARING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELED'].map((s) => (
-            <button
-              key={s}
-              className={`painel-filter-btn${filter === s ? ' active' : ''}`}
-              onClick={() => setFilter(s)}
-            >
+            <button key={s} className={`painel-filter-btn${filter === s ? ' active' : ''}`} onClick={() => setFilter(s)}>
               {s === 'ALL' ? 'Todos' : STATUS_LABELS[s]}
             </button>
           ))}
@@ -136,7 +166,7 @@ export default function PedidosPage() {
         ) : filtered.length === 0 ? (
           <div className="painel-empty">
             <p style={{ fontSize: 36 }}>📭</p>
-            <p>Nenhum pedido {filter !== 'ALL' ? STATUS_LABELS[filter].toLowerCase() : ''} ainda.</p>
+            <p>Nenhum pedido {filter !== 'ALL' ? STATUS_LABELS[filter]?.toLowerCase() : ''} ainda.</p>
           </div>
         ) : (
           <div className="pedidos-list">
@@ -154,34 +184,24 @@ export default function PedidosPage() {
                     <p style={{ fontSize: 12, color: '#888', marginTop: 4 }}>{fmtDate(order.createdAt)}</p>
                   </div>
                 </div>
-
                 <div className="pedido-items">
-                  {order.items.map((item) => (
+                  {order.items?.map((item) => (
                     <div key={item.id} className="pedido-item-line">
                       <span>{item.quantity}x {item.name}</span>
                       <span>{fmt(item.unitPriceCents * item.quantity)}</span>
                     </div>
                   ))}
                 </div>
-
                 <div className="pedido-card-footer">
                   <span className="pedido-total">{fmt(order.totalCents)}</span>
                   <div style={{ display: 'flex', gap: 8 }}>
                     {STATUS_NEXT[order.status] && (
-                      <button
-                        className="painel-btn-sm"
-                        disabled={updating === order.id}
-                        onClick={() => updateStatus(order.id, STATUS_NEXT[order.status]!)}
-                      >
+                      <button className="painel-btn-sm" disabled={updating === order.id} onClick={() => updateStatus(order.id, STATUS_NEXT[order.status]!)}>
                         {updating === order.id ? '...' : STATUS_NEXT_LABEL[order.status]}
                       </button>
                     )}
                     {!['DELIVERED', 'CANCELED'].includes(order.status) && (
-                      <button
-                        className="painel-btn-sm danger"
-                        disabled={updating === order.id}
-                        onClick={() => cancelOrder(order.id)}
-                      >
+                      <button className="painel-btn-sm danger" disabled={updating === order.id} onClick={() => cancelOrder(order.id)}>
                         Cancelar
                       </button>
                     )}

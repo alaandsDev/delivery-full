@@ -1,6 +1,8 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { JwtGuard } from './common/guards/jwt.guard';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,6 +20,11 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
+
+  // Guard JWT global — rotas públicas usam @Public()
+  const reflector = app.get(Reflector);
+  const configService = app.get(ConfigService);
+  app.useGlobalGuards(new JwtGuard(configService, reflector));
 
   const port = Number(process.env.PORT ?? 3001);
   await app.listen(port);
