@@ -35,13 +35,14 @@ export function useAuth() {
 
   useEffect(() => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
-    if (!ready || !user?.id || !token || !apiUrl) return;
+    const userId = user?.id;
+    if (!ready || !userId || !token || !apiUrl) return;
 
     let cancelled = false;
 
     async function syncStore() {
       try {
-        const res = await fetch(`${apiUrl}/stores/by-owner/${user.id}`);
+        const res = await fetch(`${apiUrl}/stores/by-owner/${userId}`);
         if (!res.ok) return;
         const freshStore = await res.json();
         if (cancelled) return;
