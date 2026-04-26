@@ -5,4 +5,4 @@ cmds = ["npm install"]
 cmds = ["npm run build"]
 
 [start]
-cmd = "npx prisma db push --skip-generate && npm run start"
+cmd = "npm run start"
