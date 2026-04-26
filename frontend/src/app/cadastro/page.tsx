@@ -1,6 +1,7 @@
-﻿'use client';
+'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { FormEvent, useState } from 'react';
 
 type RegisterResponse = {
   accessToken: string;
@@ -27,11 +28,11 @@ function slugify(value: string) {
 
 export default function CadastroPage() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
+  const hasApi = Boolean(apiUrl);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-  const hasApi = useMemo(() => Boolean(apiUrl), [apiUrl]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -97,41 +98,41 @@ export default function CadastroPage() {
   return (
     <main className="cadastro-page">
       <section className="cadastro-card">
-        <a href="/" className="cadastro-back">
+        <Link href="/" className="cadastro-back">
           {'<-'} Voltar
-        </a>
+        </Link>
 
         <h1>Crie sua loja gratis</h1>
         <p>Cadastro basico e acesso imediato ao painel por 3 dias de teste.</p>
 
         {!hasApi && (
-          <p className="cadastro-alert">Defina NEXT_PUBLIC_API_URL no Vercel para ativar o cadastro.</p>
+          <p className="cadastro-alert" aria-live="polite">Defina NEXT_PUBLIC_API_URL no Vercel para ativar o cadastro.</p>
         )}
 
         <form className="cadastro-form" onSubmit={handleSubmit}>
           <label>
             Nome
-            <input name="name" type="text" required placeholder="Seu nome" />
+            <input name="name" type="text" required placeholder="Seu nome..." autoComplete="name" />
           </label>
 
           <label>
             Email
-            <input name="email" type="email" required placeholder="seu@email.com" />
+            <input name="email" type="email" required placeholder="seu@email.com..." autoComplete="email" spellCheck={false} />
           </label>
 
           <label>
             WhatsApp
-            <input name="phone" type="tel" required placeholder="(11) 99999-9999" />
+            <input name="phone" type="tel" required placeholder="(11) 99999-9999..." autoComplete="tel" inputMode="tel" />
           </label>
 
           <label>
             Nome da loja
-            <input name="storeName" type="text" required placeholder="Ex: Burguer do Joao" />
+            <input name="storeName" type="text" required placeholder="Ex: Burguer do Joao..." autoComplete="organization" />
           </label>
 
           <label>
             Senha
-            <input name="password" type="password" required minLength={6} placeholder="Minimo 6 caracteres" />
+            <input name="password" type="password" required minLength={6} placeholder="Minimo 6 caracteres..." autoComplete="new-password" />
           </label>
 
           <button type="submit" disabled={loading || !hasApi}>
@@ -139,8 +140,8 @@ export default function CadastroPage() {
           </button>
         </form>
 
-        {error && <p className="cadastro-error">{error}</p>}
-        {success && <p className="cadastro-success">{success}</p>}
+        {error && <p className="cadastro-error" aria-live="polite">{error}</p>}
+        {success && <p className="cadastro-success" aria-live="polite">{success}</p>}
       </section>
     </main>
   );

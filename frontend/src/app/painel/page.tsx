@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useState } from 'react';
 
 type SavedUser = {
   name: string;
@@ -13,16 +14,22 @@ type SavedStore = {
   slug: string;
 };
 
-export default function PainelPage() {
-  const [user, setUser] = useState<SavedUser | null>(null);
-  const [store, setStore] = useState<SavedStore | null>(null);
+function readStorage<T>(key: string): T | null {
+  if (typeof window === 'undefined') return null;
 
-  useEffect(() => {
-    const rawUser = localStorage.getItem('pm_user');
-    const rawStore = localStorage.getItem('pm_store');
-    if (rawUser) setUser(JSON.parse(rawUser));
-    if (rawStore) setStore(JSON.parse(rawStore));
-  }, []);
+  const raw = localStorage.getItem(key);
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
+export default function PainelPage() {
+  const [user] = useState<SavedUser | null>(() => readStorage<SavedUser>('pm_user'));
+  const [store] = useState<SavedStore | null>(() => readStorage<SavedStore>('pm_store'));
 
   return (
     <main className="cadastro-page">
@@ -58,11 +65,10 @@ export default function PainelPage() {
           </p>
         </div>
 
-        <a className="btn-primary" href="/">
+        <Link className="btn-primary" href="/">
           Voltar para landing
-        </a>
+        </Link>
       </section>
     </main>
   );
 }
-
