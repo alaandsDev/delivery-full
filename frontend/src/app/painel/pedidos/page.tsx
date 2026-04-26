@@ -45,8 +45,14 @@ const STATUS_NEXT_LABEL: Record<string, string> = {
 function fmt(cents: number) {
   return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
+
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  return new Date(iso).toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 export default function PedidosPage() {
@@ -68,29 +74,31 @@ export default function PedidosPage() {
 
   const fetchOrders = useCallback(async () => {
     if (!store || !token) return;
-    const res = await fetch(`${API}/orders?storeId=${store.id}`, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await fetch(`${API}/orders?storeId=${store.id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     if (res.ok) setOrders(await res.json());
     setLoading(false);
   }, [store, token]);
 
-  useEffect(() => { if (store && token) fetchOrders(); }, [store, token, fetchOrders]);
+  useEffect(() => {
+    if (store && token) fetchOrders();
+  }, [store, token, fetchOrders]);
 
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 5000);
   }
 
-  // WebSocket — novo pedido
   useStoreSocket({
     storeId: store?.id,
-    token: token,
+    token,
     onNewOrder: (order) => {
       setOrders((prev) => {
         if (prev.find((o) => o.id === order.id)) return prev;
         return [order as unknown as Order, ...prev];
       });
-      showToast(`🛎️ Novo pedido de ${order.customerName} — ${fmt(order.totalCents)}`);
-      // Som de notificação (beep simples via Web Audio API)
+      showToast(`Novo pedido de ${order.customerName} - ${fmt(order.totalCents)}`);
       try {
         const ctx = new AudioContext();
         const osc = ctx.createOscillator();
@@ -102,7 +110,9 @@ export default function PedidosPage() {
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + 0.4);
-      } catch {}
+      } catch {
+        void audioRef;
+      }
     },
     onOrderUpdated: (order) => {
       setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, ...order } : o)));
@@ -127,7 +137,13 @@ export default function PedidosPage() {
   const filtered = filter === 'ALL' ? orders : orders.filter((o) => o.status === filter);
   const activeCount = orders.filter((o) => !['DELIVERED', 'CANCELED'].includes(o.status)).length;
 
-  if (!ready || !user || !store) return <div className="painel-loading"><div className="cardapio-spinner" /></div>;
+  if (!ready || !user || !store) {
+    return (
+      <div className="painel-loading">
+        <div className="cardapio-spinner" />
+      </div>
+    );
+  }
 
   return (
     <div className="painel-layout">
@@ -136,9 +152,10 @@ export default function PedidosPage() {
           Pede<span style={{ color: 'var(--preto)' }}>Mais</span>
         </a>
         <nav className="painel-nav">
-          <a href="/painel" className="painel-nav-item">🏠 Início</a>
-          <a href="/painel/pedidos" className="painel-nav-item active">📋 Pedidos</a>
-          <a href="/painel/produtos" className="painel-nav-item">🍔 Produtos</a>
+          <a href="/painel" className="painel-nav-item">Inicio</a>
+          <a href="/painel/pedidos" className="painel-nav-item active">Pedidos</a>
+          <a href="/painel/produtos" className="painel-nav-item">Produtos</a>
+          <a href="/painel/financeiro" className="painel-nav-item">Financeiro</a>
         </nav>
       </aside>
 
@@ -150,7 +167,7 @@ export default function PedidosPage() {
             <h1 className="painel-page-title">Pedidos</h1>
             {activeCount > 0 && <span className="painel-badge">{activeCount} em aberto</span>}
           </div>
-          <button className="painel-btn-sm" onClick={fetchOrders}>↻ Atualizar</button>
+          <button className="painel-btn-sm" onClick={fetchOrders}>Atualizar</button>
         </div>
 
         <div className="painel-filter-row">
@@ -165,7 +182,7 @@ export default function PedidosPage() {
           <div className="painel-loading"><div className="cardapio-spinner" /></div>
         ) : filtered.length === 0 ? (
           <div className="painel-empty">
-            <p style={{ fontSize: 36 }}>📭</p>
+            <p style={{ fontSize: 36 }}>-</p>
             <p>Nenhum pedido {filter !== 'ALL' ? STATUS_LABELS[filter]?.toLowerCase() : ''} ainda.</p>
           </div>
         ) : (
@@ -175,7 +192,7 @@ export default function PedidosPage() {
                 <div className="pedido-card-top">
                   <div>
                     <p className="pedido-customer">{order.customerName}</p>
-                    <p className="pedido-phone">📱 {order.customerPhone}</p>
+                    <p className="pedido-phone">{order.customerPhone}</p>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <span className={`pedido-status-badge ${order.status.toLowerCase()}`}>

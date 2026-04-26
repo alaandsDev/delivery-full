@@ -507,6 +507,33 @@ footer { background: var(--preto); color: rgba(255,255,255,0.4); text-align: cen
   font-size: 13px; color: #aaa;
 }
 
+/* ===== FINANCEIRO ===== */
+.finance-table-wrap {
+  margin-top: 12px;
+  overflow-x: auto;
+}
+
+.finance-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.finance-table th,
+.finance-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.finance-table th {
+  font-size: 12px;
+  color: #777;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 @media (max-width: 768px) {
   .painel-assinar-nav { padding: 16px 20px; }
   .assinar-hero { padding: 40px 20px 32px; }

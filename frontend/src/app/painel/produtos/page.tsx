@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -235,6 +235,7 @@ export default function ProdutosPage() {
           <a href="/painel" className="painel-nav-item">Inicio</a>
           <a href="/painel/pedidos" className="painel-nav-item">Pedidos</a>
           <a href="/painel/produtos" className="painel-nav-item active">Produtos</a>
+          <a href="/painel/financeiro" className="painel-nav-item">Financeiro</a>
         </nav>
       </aside>
 
@@ -366,3 +367,5 @@ export default function ProdutosPage() {
     </div>
   );
 }
+
+
