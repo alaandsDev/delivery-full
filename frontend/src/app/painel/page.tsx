@@ -10,9 +10,11 @@ export default function PainelPage() {
     if (ready && !user) window.location.href = '/login';
   }, [ready, user]);
 
-  if (!ready || !user || !store) return <div className="painel-loading"><div className="cardapio-spinner" /></div>;
+  if (!ready) return <div className="painel-loading"><div className="cardapio-spinner" /></div>;
+  if (!user || !store) return <div className="painel-loading"><div className="cardapio-spinner" /></div>;
 
   const cardapioUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/loja/${store.slug}`;
+  const firstName = user?.name ? user.name.split(' ')[0] : '';
 
   return (
     <div className="painel-layout">
@@ -34,7 +36,7 @@ export default function PainelPage() {
       <main className="painel-content">
         <div className="painel-topbar">
           <div>
-            <h1 className="painel-page-title">Olá, {user.name.split(' ')[0]} 👋</h1>
+            <h1 className="painel-page-title">Olá, {firstName} 👋</h1>
             <p style={{ color: '#888', fontSize: 14 }}>{store.name}</p>
           </div>
           {trialExpired ? (
@@ -48,15 +50,15 @@ export default function PainelPage() {
 
         {trialExpired && (
           <div className="painel-alert danger">
-            ⚠️ Seu período de teste expirou. Para continuar recebendo pedidos,{' '}
-            <a href="/assinar" style={{ color: '#c62828', fontWeight: 600 }}>assine um plano agora</a>.
+            ⚠️ Seu período de teste expirou.{' '}
+            <a href="/assinar" style={{ color: '#c62828', fontWeight: 600 }}>Assine um plano agora →</a>
           </div>
         )}
 
         {!trialExpired && trialDaysLeft <= 1 && (
           <div className="painel-alert">
             ⏳ Seu trial acaba {trialDaysLeft === 0 ? 'hoje' : 'amanhã'}!{' '}
-            <a href="/assinar" style={{ color: 'var(--laranja)', fontWeight: 600 }}>Assine agora para não perder pedidos →</a>
+            <a href="/assinar" style={{ color: 'var(--laranja)', fontWeight: 600 }}>Assine agora →</a>
           </div>
         )}
 
@@ -64,7 +66,7 @@ export default function PainelPage() {
           <div className="painel-card">
             <p className="painel-card-label">Cardápio público</p>
             <p style={{ fontSize: 13, color: '#888', wordBreak: 'break-all', margin: '4px 0 12px' }}>{cardapioUrl}</p>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <a href={cardapioUrl} target="_blank" rel="noopener noreferrer" className="painel-btn-sm">Ver cardápio ↗</a>
               <button className="painel-btn-sm ghost" onClick={() => navigator.clipboard.writeText(cardapioUrl)}>Copiar link</button>
             </div>
