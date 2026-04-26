@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "nest build",
-    "start": "node dist/main",
+    "build": "prisma generate && nest build",
+    "start": "prisma db push --skip-generate && node dist/main",
     "start:dev": "nest start --watch",
     "prisma:generate": "prisma generate",
     "prisma:deploy": "prisma db push --skip-generate"
