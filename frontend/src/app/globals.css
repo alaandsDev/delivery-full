@@ -508,6 +508,27 @@ footer { background: var(--preto); color: rgba(255,255,255,0.4); text-align: cen
 }
 
 /* ===== FINANCEIRO ===== */
+.finance-charts-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.finance-chart-card-full {
+  grid-column: 1 / -1;
+}
+
+.finance-chart-box {
+  width: 100%;
+  height: 280px;
+}
+
+.finance-chart-box.doughnut {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
 .finance-table-wrap {
   margin-top: 12px;
   overflow-x: auto;
@@ -535,6 +556,18 @@ footer { background: var(--preto); color: rgba(255,255,255,0.4); text-align: cen
 }
 
 @media (max-width: 768px) {
+  .finance-charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-chart-card-full {
+    grid-column: auto;
+  }
+
+  .finance-chart-box {
+    height: 240px;
+  }
+
   .painel-assinar-nav { padding: 16px 20px; }
   .assinar-hero { padding: 40px 20px 32px; }
   .assinar-grid { grid-template-columns: 1fr; padding: 0 16px; }

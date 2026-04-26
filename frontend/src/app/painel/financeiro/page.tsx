@@ -2,6 +2,31 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Tooltip,
+  Legend,
+  Title,
+} from 'chart.js';
+import { Line, Bar, Doughnut } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Tooltip,
+  Legend,
+  Title,
+);
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? '';
 
@@ -33,7 +58,7 @@ function money(cents: number) {
 }
 
 function brDate(isoDate: string) {
-  const [y, m, d] = isoDate.split('-');
+  const [_, m, d] = isoDate.split('-');
   return `${d}/${m}`;
 }
 
@@ -52,15 +77,18 @@ export default function FinanceiroPage() {
     if (!token || !store?.id) return;
     setLoading(true);
     setError(null);
+
     try {
       const res = await fetch(`${API}/finance/summary?days=${periodDays}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       if (!res.ok) {
         const payload = await res.json().catch(() => ({}));
         const msg = typeof payload?.message === 'string' ? payload.message : 'Erro ao carregar financeiro';
         throw new Error(msg);
       }
+
       setData(await res.json());
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erro ao carregar financeiro');
@@ -77,6 +105,89 @@ export default function FinanceiroPage() {
     if (!data?.dailySeries?.length) return null;
     return [...data.dailySeries].sort((a, b) => b.grossCents - a.grossCents)[0];
   }, [data]);
+
+  const chartLabels = useMemo(() => data?.dailySeries.map((row) => brDate(row.date)) ?? [], [data]);
+
+  const revenueLineData = useMemo(() => {
+    return {
+      labels: chartLabels,
+      datasets: [
+        {
+          label: 'Bruto',
+          data: data?.dailySeries.map((row) => row.grossCents / 100) ?? [],
+          borderColor: '#ff4d00',
+          backgroundColor: 'rgba(255,77,0,0.18)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 2,
+        },
+        {
+          label: 'Recebido',
+          data: data?.dailySeries.map((row) => row.paidCents / 100) ?? [],
+          borderColor: '#00c853',
+          backgroundColor: 'rgba(0,200,83,0.10)',
+          fill: false,
+          tension: 0.35,
+          pointRadius: 2,
+        },
+      ],
+    };
+  }, [data, chartLabels]);
+
+  const ordersBarData = useMemo(() => {
+    return {
+      labels: chartLabels,
+      datasets: [
+        {
+          label: 'Pedidos',
+          data: data?.dailySeries.map((row) => row.orders) ?? [],
+          backgroundColor: 'rgba(13,13,13,0.8)',
+          borderRadius: 6,
+        },
+      ],
+    };
+  }, [data, chartLabels]);
+
+  const compositionData = useMemo(() => {
+    return {
+      labels: ['Recebido', 'Pendente', 'Cancelado'],
+      datasets: [
+        {
+          data: [
+            (data?.summary.paidSalesCents ?? 0) / 100,
+            (data?.summary.pendingSalesCents ?? 0) / 100,
+            (data?.summary.canceledSalesCents ?? 0) / 100,
+          ],
+          backgroundColor: ['#00c853', '#ffb300', '#c62828'],
+          borderWidth: 0,
+        },
+      ],
+    };
+  }, [data]);
+
+  const moneyTicks = {
+    callback: (value: any) =>
+      Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }),
+  };
+
+  const lineOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'top' as const } },
+    scales: { y: { ticks: moneyTicks } },
+  };
+
+  const barOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+  };
+
+  const doughnutOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom' as const } },
+  };
 
   if (!ready || !user || !store) {
     return (
@@ -104,7 +215,7 @@ export default function FinanceiroPage() {
         <div className="painel-topbar">
           <div>
             <h1 className="painel-page-title">Financeiro</h1>
-            <p style={{ color: '#888', fontSize: 14 }}>Resumo financeiro da loja {store.name}</p>
+            <p style={{ color: '#888', fontSize: 14 }}>Relatorios financeiros da loja {store.name}</p>
           </div>
           <div className="painel-filter-row" style={{ marginBottom: 0 }}>
             {[7, 30, 90].map((d) => (
@@ -131,7 +242,7 @@ export default function FinanceiroPage() {
                 <p className="painel-card-value">{money(data.summary.grossSalesCents)}</p>
               </div>
               <div className="painel-card">
-                <p className="painel-card-label">Recebido (pagamentos)</p>
+                <p className="painel-card-label">Recebido</p>
                 <p className="painel-card-value">{money(data.summary.paidSalesCents)}</p>
               </div>
               <div className="painel-card">
@@ -139,7 +250,7 @@ export default function FinanceiroPage() {
                 <p className="painel-card-value">{money(data.summary.pendingSalesCents)}</p>
               </div>
               <div className="painel-card">
-                <p className="painel-card-label">Ticket Médio</p>
+                <p className="painel-card-label">Ticket Medio</p>
                 <p className="painel-card-value">{money(data.summary.averageTicketCents)}</p>
               </div>
               <div className="painel-card">
@@ -152,37 +263,32 @@ export default function FinanceiroPage() {
               </div>
             </div>
 
-            <div className="painel-card" style={{ marginTop: 18 }}>
-              <p className="painel-card-label">Desempenho Diário</p>
-              <div className="finance-table-wrap">
-                <table className="finance-table">
-                  <thead>
-                    <tr>
-                      <th>Dia</th>
-                      <th>Pedidos</th>
-                      <th>Bruto</th>
-                      <th>Entregue</th>
-                      <th>Recebido</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.dailySeries.map((row) => (
-                      <tr key={row.date}>
-                        <td>{brDate(row.date)}</td>
-                        <td>{row.orders}</td>
-                        <td>{money(row.grossCents)}</td>
-                        <td>{money(row.deliveredCents)}</td>
-                        <td>{money(row.paidCents)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            <div className="finance-charts-grid">
+              <div className="painel-card">
+                <p className="painel-card-label">Faturamento Diario</p>
+                <div className="finance-chart-box">
+                  <Line data={revenueLineData} options={lineOptions} />
+                </div>
+              </div>
+
+              <div className="painel-card">
+                <p className="painel-card-label">Pedidos por Dia</p>
+                <div className="finance-chart-box">
+                  <Bar data={ordersBarData} options={barOptions} />
+                </div>
+              </div>
+
+              <div className="painel-card finance-chart-card-full">
+                <p className="painel-card-label">Composicao Financeira</p>
+                <div className="finance-chart-box doughnut">
+                  <Doughnut data={compositionData} options={doughnutOptions} />
+                </div>
               </div>
             </div>
 
             {bestDay && (
               <div className="painel-alert" style={{ marginTop: 16 }}>
-                Melhor dia no período: <strong>{brDate(bestDay.date)}</strong> com <strong>{money(bestDay.grossCents)}</strong> em vendas.
+                Melhor dia no periodo: <strong>{brDate(bestDay.date)}</strong> com <strong>{money(bestDay.grossCents)}</strong> em vendas.
               </div>
             )}
           </>
@@ -191,4 +297,3 @@ export default function FinanceiroPage() {
     </div>
   );
 }
-
