@@ -31,11 +31,11 @@ export class OrdersController {
   @Post()
   async create(@Body() dto: CreateOrderDto) {
     const products = await this.prisma.product.findMany({
-      where: { id: { in: dto.items.map((i) => i.productId) }, storeId: dto.storeId },
+      where: { id: { in: dto.items.map((i: CreateOrderItemDto) => i.productId) }, storeId: dto.storeId },
     });
 
     const itemData = dto.items.map((item) => {
-      const product = products.find((p) => p.id === item.productId);
+      const product = products.find((p: { id: string }) => p.id === item.productId);
       if (!product) throw new Error('Produto inválido no pedido');
       return { productId: product.id, quantity: item.quantity, name: product.name, unitPriceCents: product.priceCents };
     });

@@ -2,6 +2,7 @@ import {
   CanActivate,
   ExecutionContext,
   Injectable,
+  SetMetadata,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -10,10 +11,7 @@ import { verify } from 'jsonwebtoken';
 import { Request } from 'express';
 
 export const IS_PUBLIC_KEY = 'isPublic';
-export function Public() {
-  const { SetMetadata } = require('@nestjs/common');
-  return SetMetadata(IS_PUBLIC_KEY, true);
-}
+export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 
 export type JwtPayload = {
   id: string;
