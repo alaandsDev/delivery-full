@@ -33,6 +33,38 @@ export function useAuth() {
     setReady(true);
   }, []);
 
+  useEffect(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
+    if (!ready || !user?.id || !token || !apiUrl) return;
+
+    let cancelled = false;
+
+    async function syncStore() {
+      try {
+        const res = await fetch(`${apiUrl}/stores/by-owner/${user.id}`);
+        if (!res.ok) return;
+        const freshStore = await res.json();
+        if (cancelled) return;
+
+        if (freshStore?.id) {
+          setStore(freshStore);
+          localStorage.setItem('pm_store', JSON.stringify(freshStore));
+        } else {
+          setStore(null);
+          localStorage.removeItem('pm_store');
+        }
+      } catch {
+        // mantém estado atual; erro transitório de rede
+      }
+    }
+
+    void syncStore();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, user?.id, token]);
+
   function logout() {
     localStorage.removeItem('pm_user');
     localStorage.removeItem('pm_store');

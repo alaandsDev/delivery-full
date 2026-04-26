@@ -19,6 +19,14 @@ function fmt(cents: number) {
   return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+function getApiMessage(payload: any, fallback: string) {
+  const msg = payload?.message;
+  if (typeof msg === 'string' && msg.trim()) return msg;
+  if (Array.isArray(msg)) return msg.join(', ');
+  if (typeof payload?.error === 'string' && payload.error.trim()) return payload.error;
+  return fallback;
+}
+
 export default function ProdutosPage() {
   const { user, store, token, ready } = useAuth();
 
@@ -139,7 +147,7 @@ export default function ProdutosPage() {
 
         if (!res.ok) {
           const payload = await res.json().catch(() => ({}));
-          throw new Error(payload?.message ?? 'Nao foi possivel atualizar produto');
+          throw new Error(getApiMessage(payload, 'Nao foi possivel atualizar produto'));
         }
       } else {
         const res = await fetch(`${API}/products`, {
@@ -156,7 +164,7 @@ export default function ProdutosPage() {
 
         if (!res.ok) {
           const payload = await res.json().catch(() => ({}));
-          throw new Error(payload?.message ?? 'Nao foi possivel criar produto');
+          throw new Error(getApiMessage(payload, 'Nao foi possivel criar produto'));
         }
       }
 
@@ -194,7 +202,7 @@ export default function ProdutosPage() {
 
       if (!res.ok) {
         const payload = await res.json().catch(() => ({}));
-        throw new Error(payload?.message ?? 'Nao foi possivel criar categoria');
+        throw new Error(getApiMessage(payload, 'Nao foi possivel criar categoria'));
       }
 
       await fetchData();

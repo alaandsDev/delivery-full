@@ -39,7 +39,12 @@ export default function LoginPage() {
 
       localStorage.setItem('pm_access_token', data.accessToken);
       localStorage.setItem('pm_user', JSON.stringify(data.user));
-      if (myStore) localStorage.setItem('pm_store', JSON.stringify(myStore));
+      if (myStore?.id) {
+        localStorage.setItem('pm_store', JSON.stringify(myStore));
+      } else {
+        // Evita manter loja antiga no navegador e bloquear create de produtos com 403.
+        localStorage.removeItem('pm_store');
+      }
 
       window.location.href = '/painel';
     } catch (err) {
