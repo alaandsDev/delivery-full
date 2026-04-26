@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { use } from 'react';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? '';
 
@@ -21,8 +20,8 @@ function fmt(cents: number) {
   return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-export default function CardapioPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params);
+export default function CardapioPage({ params }: { params: { slug: string } }) {
+  const { slug } = params;
 
   const [store, setStore] = useState<Store | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
