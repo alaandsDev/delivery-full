@@ -1,7 +1,7 @@
 ﻿export default function HomePage() {
   return (
     <>
-      <nav>
+      <nav className="landing-nav">
         <a href="/" className="logo">
           Pede<span>Mais</span>
         </a>

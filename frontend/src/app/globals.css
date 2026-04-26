@@ -21,7 +21,7 @@ body {
 .display { font-family: 'Syne', sans-serif; font-weight: 800; line-height: 1; letter-spacing: -0.03em; }
 h2 { font-family: 'Syne', sans-serif; font-weight: 700; }
 
-nav {
+.landing-nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   padding: 16px 40px;
   display: flex; align-items: center; justify-content: space-between;
