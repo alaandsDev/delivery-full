@@ -1,0 +1,84 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+
+export type AuthUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  trialEndsAt: string | null;
+};
+
+export type AuthStore = {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+};
+
+export function useAuth() {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [store, setStore] = useState<AuthStore | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const rawUser = localStorage.getItem('pm_user');
+    const rawStore = localStorage.getItem('pm_store');
+    const rawToken = localStorage.getItem('pm_access_token');
+    if (rawUser) setUser(JSON.parse(rawUser));
+    if (rawStore) setStore(JSON.parse(rawStore));
+    if (rawToken) setToken(rawToken);
+    setReady(true);
+  }, []);
+
+  useEffect(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
+    const userId = user?.id;
+    if (!ready || !userId || !token || !apiUrl) return;
+
+    let cancelled = false;
+
+    async function syncStore() {
+      try {
+        const res = await fetch(`${apiUrl}/stores/by-owner/${userId}`);
+        if (!res.ok) return;
+        const freshStore = await res.json();
+        if (cancelled) return;
+
+        if (freshStore?.id) {
+          setStore(freshStore);
+          localStorage.setItem('pm_store', JSON.stringify(freshStore));
+        } else {
+          setStore(null);
+          localStorage.removeItem('pm_store');
+        }
+      } catch {
+        // mantém estado atual; erro transitório de rede
+      }
+    }
+
+    void syncStore();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, user?.id, token]);
+
+  function logout() {
+    localStorage.removeItem('pm_user');
+    localStorage.removeItem('pm_store');
+    localStorage.removeItem('pm_access_token');
+    window.location.href = '/login';
+  }
+
+  const trialExpired =
+    user?.trialEndsAt ? new Date(user.trialEndsAt).getTime() < Date.now() : false;
+
+  const trialDaysLeft = user?.trialEndsAt
+    ? Math.max(0, Math.ceil((new Date(user.trialEndsAt).getTime() - Date.now()) / 86400000))
+    : 0;
+
+  return { user, store, token, ready, logout, trialExpired, trialDaysLeft };
+}

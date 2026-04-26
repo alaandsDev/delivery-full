@@ -15,15 +15,15 @@ Esta base foi simplificada para um fluxo de publicacao mais rapido:
    - `Direct connection string` para `DIRECT_URL`
 3. Use o mesmo banco para o Prisma no backend.
 
-## 2. Backend no Render
+## 2. Backend no Render ou Railway
 
 1. Suba este repositorio no GitHub.
-2. No Render, crie um `Web Service`.
+2. No Render, crie um `Web Service`, ou no Railway crie um service apontando para `backend`.
 3. Aponte o `Root Directory` para `backend`.
 4. Use os comandos:
 
 ```bash
-npm install && npx prisma generate && npm run build
+npm install && npm run prisma:generate && npm run prisma:deploy && npm run build
 ```
 
 ```bash
@@ -62,6 +62,8 @@ FROM_NAME=Delivery SaaS
 https://seu-backend.onrender.com/api/v1/health
 ```
 
+No Railway, o arquivo [backend/nixpacks.toml](C:\Users\aland\Desktop\projects\delivery-full\backend\nixpacks.toml) garante que o deploy rode `prisma db push` antes de subir a API.
+
 ## 3. Frontend no Vercel
 
 1. Importe o repositorio no Vercel.
@@ -83,6 +85,7 @@ NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=seu-cloud-name
 - `DATABASE_URL` e `DIRECT_URL` preenchidas com dados do Supabase
 - `ALLOWED_ORIGINS` configurado com a URL do Vercel
 - `NEXT_PUBLIC_API_URL` apontando para o Render
+- `prisma db push` executado no deploy do backend para criar/atualizar as tabelas e colunas do cadastro
 
 ## Observacao
 

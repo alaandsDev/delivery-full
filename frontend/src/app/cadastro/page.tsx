@@ -65,11 +65,13 @@ export default function CadastroPage() {
 
       const storeResponse = await fetch(`${apiUrl}/stores`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${regData.accessToken}`,
+        },
         body: JSON.stringify({
           name: storeName,
           slug,
-          ownerId: regData.user.id,
           description: `Loja de ${name}`,
         }),
       });
@@ -140,8 +142,18 @@ export default function CadastroPage() {
           </button>
         </form>
 
+<<<<<<< HEAD
         {error && <p className="cadastro-error" aria-live="polite">{error}</p>}
         {success && <p className="cadastro-success" aria-live="polite">{success}</p>}
+=======
+        {error && <p className="cadastro-error">{error}</p>}
+        {success && <p className="cadastro-success">{success}</p>}
+
+        <small style={{ marginTop: 16, display: 'block', textAlign: 'center', color: '#888' }}>
+          Já tem uma conta?{' '}
+          <a href="/login" style={{ color: 'var(--laranja)', fontWeight: 500 }}>Entrar</a>
+        </small>
+>>>>>>> 27588b6e7ed601f3b891c6c8c346986ac447d192
       </section>
     </main>
   );

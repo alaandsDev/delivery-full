@@ -1,4 +1,4 @@
-﻿import { Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import configuration from './config/configuration';
@@ -13,6 +13,8 @@ import { OrdersModule } from './orders/orders.module';
 import { PaymentsModule } from './payments/payments.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { LeadsModule } from './leads/leads.module';
+import { EventsModule } from './events/events.module';
+import { FinanceModule } from './finance/finance.module';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { LeadsModule } from './leads/leads.module';
     PaymentsModule,
     NotificationsModule,
     LeadsModule,
+    EventsModule,
+    FinanceModule,
   ],
   controllers: [AppController],
 })

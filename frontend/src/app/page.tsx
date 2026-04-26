@@ -3,6 +3,7 @@ import Link from 'next/link';
 export default function HomePage() {
   return (
     <>
+<<<<<<< HEAD
       <nav>
         <Link href="/" className="logo">
           Pede<span>Mais</span>
@@ -10,6 +11,20 @@ export default function HomePage() {
         <Link href="/cadastro" className="nav-cta">
           Criar loja gratis -&gt;
         </Link>
+=======
+      <nav className="landing-nav">
+        <a href="/" className="logo">
+          Pede<span>Mais</span>
+        </a>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <a href="/login" className="nav-login">
+            Já tenho conta
+          </a>
+          <a href="/cadastro" className="nav-cta">
+            Criar loja gratis -&gt;
+          </a>
+        </div>
+>>>>>>> 27588b6e7ed601f3b891c6c8c346986ac447d192
       </nav>
 
       <main>
