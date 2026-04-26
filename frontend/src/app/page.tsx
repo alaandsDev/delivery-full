@@ -5,9 +5,14 @@
         <a href="/" className="logo">
           Pede<span>Mais</span>
         </a>
-        <a href="/cadastro" className="nav-cta">
-          Criar loja gratis -&gt;
-        </a>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <a href="/login" className="nav-login">
+            Já tenho conta
+          </a>
+          <a href="/cadastro" className="nav-cta">
+            Criar loja gratis -&gt;
+          </a>
+        </div>
       </nav>
 
       <section className="hero">

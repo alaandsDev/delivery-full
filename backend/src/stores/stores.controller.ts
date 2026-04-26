@@ -8,7 +8,6 @@ import { JwtPayload } from '../common/guards/jwt.guard';
 class CreateStoreDto {
   @IsString() name!: string;
   @IsString() slug!: string;
-  @IsString() ownerId!: string;
   @IsOptional() @IsString() description?: string;
 }
 
@@ -21,11 +20,12 @@ class UpdateStoreDto {
 export class StoresController {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Pública — chamada logo após o registro
-  @Public()
+  // Autenticado — ownerId vem do token, não do body (seguro)
   @Post()
-  create(@Body() dto: CreateStoreDto) {
-    return this.prisma.store.create({ data: dto });
+  create(@Body() dto: CreateStoreDto, @CurrentUser() user: JwtPayload) {
+    return this.prisma.store.create({
+      data: { ...dto, ownerId: user.id },
+    });
   }
 
   // Pública — cardápio precisa buscar por slug sem auth
