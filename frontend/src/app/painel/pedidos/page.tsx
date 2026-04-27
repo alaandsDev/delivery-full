@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useStoreSocket } from '@/hooks/useStoreSocket';
 
@@ -67,9 +67,10 @@ export default function PedidosPage() {
     if (ready && !user) window.location.href = '/login';
   }, [ready, user]);
 
-  function authHeaders() {
-    return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
-  }
+  const authHeaders = useCallback(
+    () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }),
+    [token],
+  );
 
   const fetchOrders = useCallback(async () => {
     if (!store || !token) return;
