@@ -2,30 +2,18 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Tooltip,
-  Legend,
-  Title,
-} from 'chart.js';
-import { Line, Bar, Doughnut } from 'react-chartjs-2';
+import dynamic from 'next/dynamic';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Tooltip,
-  Legend,
-  Title,
+const FinanceCharts = dynamic(
+  () => import('@/components/financeiro/FinanceCharts'),
+  {
+    ssr: false,
+    loading: () => (
+      <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'center', padding: 40 }}>
+        <div className="cardapio-spinner" />
+      </div>
+    ),
+  },
 );
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? '';
@@ -108,87 +96,6 @@ export default function FinanceiroPage() {
 
   const chartLabels = useMemo(() => data?.dailySeries.map((row) => brDate(row.date)) ?? [], [data]);
 
-  const revenueLineData = useMemo(() => {
-    return {
-      labels: chartLabels,
-      datasets: [
-        {
-          label: 'Bruto',
-          data: data?.dailySeries.map((row) => row.grossCents / 100) ?? [],
-          borderColor: '#ff4d00',
-          backgroundColor: 'rgba(255,77,0,0.18)',
-          fill: true,
-          tension: 0.35,
-          pointRadius: 2,
-        },
-        {
-          label: 'Recebido',
-          data: data?.dailySeries.map((row) => row.paidCents / 100) ?? [],
-          borderColor: '#00c853',
-          backgroundColor: 'rgba(0,200,83,0.10)',
-          fill: false,
-          tension: 0.35,
-          pointRadius: 2,
-        },
-      ],
-    };
-  }, [data, chartLabels]);
-
-  const ordersBarData = useMemo(() => {
-    return {
-      labels: chartLabels,
-      datasets: [
-        {
-          label: 'Pedidos',
-          data: data?.dailySeries.map((row) => row.orders) ?? [],
-          backgroundColor: 'rgba(13,13,13,0.8)',
-          borderRadius: 6,
-        },
-      ],
-    };
-  }, [data, chartLabels]);
-
-  const compositionData = useMemo(() => {
-    return {
-      labels: ['Recebido', 'Pendente', 'Cancelado'],
-      datasets: [
-        {
-          data: [
-            (data?.summary.paidSalesCents ?? 0) / 100,
-            (data?.summary.pendingSalesCents ?? 0) / 100,
-            (data?.summary.canceledSalesCents ?? 0) / 100,
-          ],
-          backgroundColor: ['#00c853', '#ffb300', '#c62828'],
-          borderWidth: 0,
-        },
-      ],
-    };
-  }, [data]);
-
-  const moneyTicks = {
-    callback: (value: any) =>
-      Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }),
-  };
-
-  const lineOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { position: 'top' as const } },
-    scales: { y: { ticks: moneyTicks } },
-  };
-
-  const barOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-  };
-
-  const doughnutOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { position: 'bottom' as const } },
-  };
-
   if (!ready || !user || !store) {
     return (
       <div className="painel-loading">
@@ -264,26 +171,11 @@ export default function FinanceiroPage() {
             </div>
 
             <div className="finance-charts-grid">
-              <div className="painel-card">
-                <p className="painel-card-label">Faturamento Diario</p>
-                <div className="finance-chart-box">
-                  <Line data={revenueLineData} options={lineOptions} />
-                </div>
-              </div>
-
-              <div className="painel-card">
-                <p className="painel-card-label">Pedidos por Dia</p>
-                <div className="finance-chart-box">
-                  <Bar data={ordersBarData} options={barOptions} />
-                </div>
-              </div>
-
-              <div className="painel-card finance-chart-card-full">
-                <p className="painel-card-label">Composicao Financeira</p>
-                <div className="finance-chart-box doughnut">
-                  <Doughnut data={compositionData} options={doughnutOptions} />
-                </div>
-              </div>
+              <FinanceCharts
+                chartLabels={chartLabels}
+                dailySeries={data.dailySeries}
+                summary={data.summary}
+              />
             </div>
 
             {bestDay && (
