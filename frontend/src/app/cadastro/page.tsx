@@ -1,4 +1,5 @@
 'use client';
+import { lsSet } from '@/hooks/useAuth';
 
 import Link from 'next/link';
 import { FormEvent, useState } from 'react';
@@ -83,9 +84,9 @@ export default function CadastroPage() {
 
       const store = await storeResponse.json();
 
-      localStorage.setItem('pm_access_token', regData.accessToken);
-      localStorage.setItem('pm_user', JSON.stringify(regData.user));
-      localStorage.setItem('pm_store', JSON.stringify(store));
+      lsSet('pm_access_token', regData.accessToken);
+      lsSet('pm_user', JSON.stringify(regData.user));
+      lsSet('pm_store', JSON.stringify(store));
 
       setSuccess('Conta criada com sucesso. Seu trial de 3 dias ja esta ativo.');
       window.location.href = '/painel';

@@ -17,6 +17,26 @@ export type AuthStore = {
   description?: string;
 };
 
+// Helpers com try-catch — localStorage lança em Safari privado e Android antigo
+const SCHEMA = 'v1';
+
+function lsGet(key: string): string | null {
+  try { return localStorage.getItem(`${key}:${SCHEMA}`); } catch { return null; }
+}
+
+function lsSet(key: string, value: string): void {
+  try { localStorage.setItem(`${key}:${SCHEMA}`, value); } catch {}
+}
+
+function lsRemove(key: string): void {
+  try { localStorage.removeItem(`${key}:${SCHEMA}`); } catch {}
+}
+
+function safeParse<T>(raw: string | null): T | null {
+  if (!raw) return null;
+  try { return JSON.parse(raw) as T; } catch { return null; }
+}
+
 export function useAuth() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [store, setStore] = useState<AuthStore | null>(null);
@@ -24,12 +44,9 @@ export function useAuth() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const rawUser = localStorage.getItem('pm_user');
-    const rawStore = localStorage.getItem('pm_store');
-    const rawToken = localStorage.getItem('pm_access_token');
-    if (rawUser) setUser(JSON.parse(rawUser));
-    if (rawStore) setStore(JSON.parse(rawStore));
-    if (rawToken) setToken(rawToken);
+    setUser(safeParse<AuthUser>(lsGet('pm_user')));
+    setStore(safeParse<AuthStore>(lsGet('pm_store')));
+    setToken(lsGet('pm_access_token'));
     setReady(true);
   }, []);
 
@@ -44,15 +61,15 @@ export function useAuth() {
       try {
         const res = await fetch(`${apiUrl}/stores/by-owner/${userId}`);
         if (!res.ok) return;
-        const freshStore = await res.json();
+        const freshStore: AuthStore = await res.json();
         if (cancelled) return;
 
         if (freshStore?.id) {
           setStore(freshStore);
-          localStorage.setItem('pm_store', JSON.stringify(freshStore));
+          lsSet('pm_store', JSON.stringify(freshStore));
         } else {
           setStore(null);
-          localStorage.removeItem('pm_store');
+          lsRemove('pm_store');
         }
       } catch {
         // mantém estado atual; erro transitório de rede
@@ -60,16 +77,13 @@ export function useAuth() {
     }
 
     void syncStore();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [ready, user?.id, token]);
 
   function logout() {
-    localStorage.removeItem('pm_user');
-    localStorage.removeItem('pm_store');
-    localStorage.removeItem('pm_access_token');
+    lsRemove('pm_user');
+    lsRemove('pm_store');
+    lsRemove('pm_access_token');
     window.location.href = '/login';
   }
 
@@ -82,3 +96,6 @@ export function useAuth() {
 
   return { user, store, token, ready, logout, trialExpired, trialDaysLeft };
 }
+
+// Helpers exportados para uso em login/cadastro
+export { lsSet, lsRemove, lsGet };

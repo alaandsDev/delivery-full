@@ -2,6 +2,8 @@
 
 import { FormEvent, useState } from 'react';
 
+import { lsSet, lsRemove } from '@/hooks/useAuth';
+
 type LoginResponse = {
   accessToken: string;
   refreshToken: string;
@@ -37,13 +39,13 @@ export default function LoginPage() {
       const storeRes = await fetch(`${apiUrl}/stores/by-owner/${data.user.id}`);
       const myStore = storeRes.ok ? await storeRes.json() : null;
 
-      localStorage.setItem('pm_access_token', data.accessToken);
-      localStorage.setItem('pm_user', JSON.stringify(data.user));
+      lsSet('pm_access_token', data.accessToken);
+      lsSet('pm_user', JSON.stringify(data.user));
       if (myStore?.id) {
-        localStorage.setItem('pm_store', JSON.stringify(myStore));
+        lsSet('pm_store', JSON.stringify(myStore));
       } else {
         // Evita manter loja antiga no navegador e bloquear create de produtos com 403.
-        localStorage.removeItem('pm_store');
+        lsRemove('pm_store');
       }
 
       window.location.href = '/painel';
