@@ -3,6 +3,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtPayload } from '../common/guards/jwt.guard';
 
+type OrderRow = { status: string; totalCents: number; createdAt: Date };
+type PaymentRow = { status: string | null; amountCents: number; createdAt: Date };
+
 type DailySeriesPoint = {
   date: string;
   grossCents: number;
@@ -41,28 +44,28 @@ export class FinanceController {
     ]);
 
     const grossSalesCents = orders
-      .filter((o) => o.status !== 'CANCELED')
-      .reduce((sum, o) => sum + o.totalCents, 0);
+      .filter((o: { status: string; totalCents: number }) => o.status !== 'CANCELED')
+      .reduce((sum: number, o: { totalCents: number }) => sum + o.totalCents, 0);
 
     const deliveredSalesCents = orders
-      .filter((o) => o.status === 'DELIVERED')
-      .reduce((sum, o) => sum + o.totalCents, 0);
+      .filter((o: { status: string; totalCents: number }) => o.status === 'DELIVERED')
+      .reduce((sum: number, o: { totalCents: number }) => sum + o.totalCents, 0);
 
     const canceledSalesCents = orders
-      .filter((o) => o.status === 'CANCELED')
-      .reduce((sum, o) => sum + o.totalCents, 0);
+      .filter((o: { status: string; totalCents: number }) => o.status === 'CANCELED')
+      .reduce((sum: number, o: { totalCents: number }) => sum + o.totalCents, 0);
 
     const pendingSalesCents = orders
-      .filter((o) => ['PENDING', 'CONFIRMED', 'PREPARING', 'OUT_FOR_DELIVERY'].includes(o.status))
-      .reduce((sum, o) => sum + o.totalCents, 0);
+      .filter((o: OrderRow) => ['PENDING', 'CONFIRMED', 'PREPARING', 'OUT_FOR_DELIVERY'].includes(o.status))
+      .reduce((sum: number, o: OrderRow) => sum + o.totalCents, 0);
 
     const paidSalesCents = payments
-      .filter((p) => ['PAID', 'APPROVED', 'COMPLETED', 'CONFIRMED'].includes((p.status ?? '').toUpperCase()))
-      .reduce((sum, p) => sum + p.amountCents, 0);
+      .filter((p: PaymentRow) => ['PAID', 'APPROVED', 'COMPLETED', 'CONFIRMED'].includes((p.status ?? '').toUpperCase()))
+      .reduce((sum: number, p: PaymentRow) => sum + p.amountCents, 0);
 
     const ordersCount = orders.length;
-    const deliveredOrdersCount = orders.filter((o) => o.status === 'DELIVERED').length;
-    const canceledOrdersCount = orders.filter((o) => o.status === 'CANCELED').length;
+    const deliveredOrdersCount = orders.filter((o: OrderRow) => o.status === 'DELIVERED').length;
+    const canceledOrdersCount = orders.filter((o: OrderRow) => o.status === 'CANCELED').length;
     const averageTicketCents = ordersCount > 0 ? Math.round(grossSalesCents / ordersCount) : 0;
 
     const dailySeries = this.buildDailySeries(startDate, days, orders, payments);

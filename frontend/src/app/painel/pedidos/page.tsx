@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useStoreSocket } from '@/hooks/useStoreSocket';
 
@@ -62,7 +62,6 @@ export default function PedidosPage() {
   const [filter, setFilter] = useState<string>('ALL');
   const [updating, setUpdating] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (ready && !user) window.location.href = '/login';
@@ -111,7 +110,6 @@ export default function PedidosPage() {
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + 0.4);
       } catch {
-        void audioRef;
       }
     },
     onOrderUpdated: (order) => {
