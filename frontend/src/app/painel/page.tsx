@@ -7,6 +7,15 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? '';
 
 type Order = { id: string; status: string; totalCents: number; createdAt: string; customerName: string };
 
+const STATUS_LABELS: Record<string, string> = {
+  PENDING: 'Pendente', CONFIRMED: 'Confirmado', PREPARING: 'Preparando',
+  OUT_FOR_DELIVERY: 'Saiu p/ entrega', DELIVERED: 'Entregue', CANCELED: 'Cancelado',
+};
+const STATUS_COLOR: Record<string, string> = {
+  PENDING: '#f59e0b', CONFIRMED: '#3b82f6', PREPARING: '#8b5cf6',
+  OUT_FOR_DELIVERY: '#06b6d4', DELIVERED: '#10b981', CANCELED: '#ef4444',
+};
+
 function fmt(cents: number) {
   return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
@@ -34,14 +43,7 @@ export default function PainelPage() {
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
-  if (!ready) return <div className="painel-loading"><div className="cardapio-spinner" /></div>;
-  if (!user || !store) return <div className="painel-loading"><div className="cardapio-spinner" /></div>;
-
-  const cardapioUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/loja/${store.slug}`;
-  const firstName = user?.name?.split(' ')[0] ?? '';
-
-  // Stats calculadas
-  // Stats memoizadas — só recalculam quando orders muda
+  // Todos os useMemo ANTES de qualquer return condicional
   const today = useMemo(() => new Date().toDateString(), []);
   const todayOrders = useMemo(() => orders.filter(o => new Date(o.createdAt).toDateString() === today), [orders, today]);
   const todayRevenue = useMemo(() => todayOrders.filter(o => o.status !== 'CANCELED').reduce((s, o) => s + o.totalCents, 0), [todayOrders]);
@@ -49,14 +51,12 @@ export default function PainelPage() {
   const totalRevenue = useMemo(() => orders.filter(o => o.status !== 'CANCELED').reduce((s, o) => s + o.totalCents, 0), [orders]);
   const recentOrders = useMemo(() => orders.slice(0, 5), [orders]);
 
-  const STATUS_LABELS: Record<string, string> = {
-    PENDING: 'Pendente', CONFIRMED: 'Confirmado', PREPARING: 'Preparando',
-    OUT_FOR_DELIVERY: 'Saiu p/ entrega', DELIVERED: 'Entregue', CANCELED: 'Cancelado',
-  };
-  const STATUS_COLOR: Record<string, string> = {
-    PENDING: '#f59e0b', CONFIRMED: '#3b82f6', PREPARING: '#8b5cf6',
-    OUT_FOR_DELIVERY: '#06b6d4', DELIVERED: '#10b981', CANCELED: '#ef4444',
-  };
+  // Returns condicionais DEPOIS de todos os hooks
+  if (!ready) return <div className="painel-loading"><div className="cardapio-spinner" /></div>;
+  if (!user || !store) return <div className="painel-loading"><div className="cardapio-spinner" /></div>;
+
+  const cardapioUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/loja/${store.slug}`;
+  const firstName = user?.name?.split(' ')[0] ?? '';
 
   return (
     <div className="painel-layout">
@@ -75,6 +75,9 @@ export default function PainelPage() {
           <a href="/painel/produtos" className="painel-nav-item">
             <span className="pni-icon">🍔</span> Produtos
           </a>
+          <a href="/painel/financeiro" className="painel-nav-item">
+            <span className="pni-icon">📊</span> Financeiro
+          </a>
         </nav>
         <div className="painel-sidebar-footer">
           <a href="/assinar" className="painel-nav-item" style={{ color: 'var(--laranja)' }}>
@@ -92,7 +95,6 @@ export default function PainelPage() {
       </aside>
 
       <main className="painel-content">
-        {/* Topbar */}
         <div className="painel-topbar">
           <div>
             <h1 className="painel-page-title">Olá, {firstName} 👋</h1>
@@ -109,11 +111,10 @@ export default function PainelPage() {
         {trialExpired && (
           <div className="painel-alert danger" style={{ marginBottom: 24 }}>
             ⚠️ Seu período de teste expirou.{' '}
-            <a href="/assinar" style={{ color: '#c62828', fontWeight: 600 }}>Assine para continuar recebendo pedidos →</a>
+            <a href="/assinar" style={{ color: '#c62828', fontWeight: 600 }}>Assine para continuar →</a>
           </div>
         )}
 
-        {/* Stats */}
         <div className="painel-stats-grid">
           <div className="painel-stat-card">
             <div className="painel-stat-icon" style={{ background: '#fff0eb' }}>📦</div>
@@ -147,7 +148,6 @@ export default function PainelPage() {
           </div>
         </div>
 
-        {/* Cardápio + Recentes */}
         <div className="painel-bottom-grid">
           <div className="painel-card">
             <p className="painel-card-label">Seu cardápio público</p>
@@ -155,7 +155,7 @@ export default function PainelPage() {
               <div className="painel-cardapio-url">{cardapioUrl}</div>
               <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
                 <a href={cardapioUrl} target="_blank" rel="noopener noreferrer" className="painel-btn-sm">Abrir ↗</a>
-                <button className="painel-btn-sm ghost" onClick={() => { navigator.clipboard.writeText(cardapioUrl); }}>Copiar link</button>
+                <button className="painel-btn-sm ghost" onClick={() => navigator.clipboard.writeText(cardapioUrl)}>Copiar link</button>
               </div>
             </div>
             <div className="painel-divider" />
@@ -163,6 +163,7 @@ export default function PainelPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
               <a href="/painel/pedidos" className="painel-quicklink">📋 Gerenciar pedidos</a>
               <a href="/painel/produtos" className="painel-quicklink">➕ Adicionar produto</a>
+              <a href="/painel/financeiro" className="painel-quicklink">📊 Ver financeiro</a>
             </div>
           </div>
 
@@ -172,12 +173,14 @@ export default function PainelPage() {
               <a href="/painel/pedidos" className="painel-btn-sm ghost">Ver todos</a>
             </div>
             {loadingOrders ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}><div className="cardapio-spinner" /></div>
+              <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}>
+                <div className="cardapio-spinner" />
+              </div>
             ) : recentOrders.length === 0 ? (
               <div className="painel-empty-state">
                 <p>🛒</p>
                 <p>Nenhum pedido ainda.</p>
-                <p style={{ fontSize: 13 }}>Compartilhe o link do seu cardápio para começar!</p>
+                <p style={{ fontSize: 13 }}>Compartilhe o link do cardápio para começar!</p>
               </div>
             ) : (
               <div className="painel-orders-list">
@@ -187,8 +190,14 @@ export default function PainelPage() {
                       <p style={{ fontWeight: 600, fontSize: 14 }}>{order.customerName}</p>
                       <p style={{ fontSize: 12, color: '#888' }}>{fmt(order.totalCents)}</p>
                     </div>
-                    <span className="painel-order-status" style={{ background: STATUS_COLOR[order.status] + '20', color: STATUS_COLOR[order.status] }}>
-                      {STATUS_LABELS[order.status]}
+                    <span
+                      className="painel-order-status"
+                      style={{
+                        background: (STATUS_COLOR[order.status] ?? '#888') + '20',
+                        color: STATUS_COLOR[order.status] ?? '#888',
+                      }}
+                    >
+                      {STATUS_LABELS[order.status] ?? order.status}
                     </span>
                   </div>
                 ))}
