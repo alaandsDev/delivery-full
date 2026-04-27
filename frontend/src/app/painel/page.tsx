@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? '';
@@ -41,12 +41,13 @@ export default function PainelPage() {
   const firstName = user?.name?.split(' ')[0] ?? '';
 
   // Stats calculadas
-  const today = new Date().toDateString();
-  const todayOrders = orders.filter(o => new Date(o.createdAt).toDateString() === today);
-  const todayRevenue = todayOrders.filter(o => o.status !== 'CANCELED').reduce((s, o) => s + o.totalCents, 0);
-  const pendingOrders = orders.filter(o => o.status === 'PENDING');
-  const totalRevenue = orders.filter(o => o.status !== 'CANCELED').reduce((s, o) => s + o.totalCents, 0);
-  const recentOrders = orders.slice(0, 5);
+  // Stats memoizadas — só recalculam quando orders muda
+  const today = useMemo(() => new Date().toDateString(), []);
+  const todayOrders = useMemo(() => orders.filter(o => new Date(o.createdAt).toDateString() === today), [orders, today]);
+  const todayRevenue = useMemo(() => todayOrders.filter(o => o.status !== 'CANCELED').reduce((s, o) => s + o.totalCents, 0), [todayOrders]);
+  const pendingOrders = useMemo(() => orders.filter(o => o.status === 'PENDING'), [orders]);
+  const totalRevenue = useMemo(() => orders.filter(o => o.status !== 'CANCELED').reduce((s, o) => s + o.totalCents, 0), [orders]);
+  const recentOrders = useMemo(() => orders.slice(0, 5), [orders]);
 
   const STATUS_LABELS: Record<string, string> = {
     PENDING: 'Pendente', CONFIRMED: 'Confirmado', PREPARING: 'Preparando',
@@ -69,7 +70,7 @@ export default function PainelPage() {
           </a>
           <a href="/painel/pedidos" className="painel-nav-item">
             <span className="pni-icon">📋</span> Pedidos
-            {pendingOrders.length > 0 && <span className="pni-badge">{pendingOrders.length}</span>}
+            {pendingOrders.length > 0 ? <span className="pni-badge">{pendingOrders.length}</span> : null}
           </a>
           <a href="/painel/produtos" className="painel-nav-item">
             <span className="pni-icon">🍔</span> Produtos

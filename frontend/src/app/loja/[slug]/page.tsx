@@ -151,7 +151,7 @@ export default function CardapioPage({ params }: { params: Promise<{ slug: strin
       </header>
 
       {/* Categorias */}
-      {categories.length > 0 && (
+      {categories.length > 0 ? (
         <nav className="cardapio-cats">
           {categories.map((cat) => (
             <button
@@ -166,7 +166,7 @@ export default function CardapioPage({ params }: { params: Promise<{ slug: strin
             </button>
           ))}
         </nav>
-      )}
+      ) : null}
 
       {/* Produtos */}
       <main className="cardapio-main">
@@ -205,12 +205,12 @@ export default function CardapioPage({ params }: { params: Promise<{ slug: strin
           );
         })}
 
-        {products.length === 0 && (
+        {products.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 20px', color: '#888' }}>
             <p style={{ fontSize: 40 }}>🍽️</p>
             <p style={{ marginTop: 12 }}>Nenhum produto disponível ainda.</p>
           </div>
-        )}
+        ) : null}
       </main>
 
       {/* Botão flutuante do carrinho */}
