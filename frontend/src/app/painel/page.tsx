@@ -78,6 +78,12 @@ export default function PainelPage() {
           <a href="/painel/financeiro" className="painel-nav-item">
             <span className="pni-icon">📊</span> Financeiro
           </a>
+          <a href="/painel/clientes" className="painel-nav-item">
+            <span className="pni-icon">👥</span> Clientes
+          </a>
+          <a href="/painel/configuracoes" className="painel-nav-item">
+            <span className="pni-icon">⚙️</span> Configurações
+          </a>
         </nav>
         <div className="painel-sidebar-footer">
           <a href="/assinar" className="painel-nav-item" style={{ color: 'var(--laranja)' }}>

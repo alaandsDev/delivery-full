@@ -470,3 +470,32 @@ details[open] .lp-faq-arrow { transform: rotate(180deg); }
   .painel-content { margin-left: 0; padding: 20px 16px; max-width: 100vw; }
   .painel-stats-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ============================================================
+   CARDÁPIO — PAGAMENTO E NOVOS ELEMENTOS
+============================================================ */
+.cardapio-payment-grid { display: flex; gap: 8px; }
+.cardapio-payment-btn {
+  flex: 1; padding: 10px 8px; border: 1.5px solid rgba(0,0,0,0.12);
+  border-radius: 10px; background: #fff; font: inherit; font-size: 13px;
+  font-weight: 500; cursor: pointer; color: #555;
+}
+.cardapio-payment-btn.active { border-color: var(--laranja); background: #fff0eb; color: var(--laranja); font-weight: 600; }
+
+/* ============================================================
+   CLIENTES
+============================================================ */
+.clientes-grid { display: flex; flex-direction: column; gap: 10px; }
+.cliente-card {
+  background: #fff; border: 1px solid rgba(0,0,0,0.07); border-radius: 14px;
+  padding: 14px 16px; display: flex; align-items: center; gap: 14px;
+}
+.cliente-avatar {
+  width: 42px; height: 42px; border-radius: 50%; background: var(--laranja);
+  color: #fff; font-weight: 700; font-size: 18px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.cliente-info { flex: 1; }
+.cliente-name { font-weight: 600; font-size: 15px; }
+.cliente-phone { font-size: 13px; color: #666; margin-top: 2px; }
+.cliente-address { font-size: 13px; color: #888; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; }

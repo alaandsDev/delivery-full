@@ -14,6 +14,8 @@ import { PaymentsModule } from './payments/payments.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { LeadsModule } from './leads/leads.module';
 import { EventsModule } from './events/events.module';
+import { CustomersModule } from './customers/customers.module';
+import { CouponsModule } from './coupons/coupons.module';
 import { FinanceModule } from './finance/finance.module';
 
 @Module({
@@ -35,6 +37,8 @@ import { FinanceModule } from './finance/finance.module';
     NotificationsModule,
     LeadsModule,
     EventsModule,
+    CustomersModule,
+    CouponsModule,
     FinanceModule,
   ],
   controllers: [AppController],

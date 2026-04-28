@@ -44,17 +44,23 @@ model User {
 }
 
 model Store {
-  id            String         @id @default(cuid())
-  name          String
-  slug          String         @unique
-  description   String?
-  ownerId       String         @unique
-  owner         User           @relation(fields: [ownerId], references: [id])
-  categories    Category[]
-  products      Product[]
-  orders        Order[]
-  notifications Notification[]
-  createdAt     DateTime       @default(now())
+  id              String         @id @default(cuid())
+  name            String
+  slug            String         @unique
+  description     String?
+  whatsappNumber  String?
+  deliveryFee     Int            @default(0)
+  minOrderCents   Int            @default(0)
+  openingHours    String?
+  ownerId         String         @unique
+  owner           User           @relation(fields: [ownerId], references: [id])
+  categories      Category[]
+  products        Product[]
+  orders          Order[]
+  customers       Customer[]
+  coupons         Coupon[]
+  notifications   Notification[]
+  createdAt       DateTime       @default(now())
 }
 
 model Category {
@@ -81,16 +87,23 @@ model Product {
 }
 
 model Order {
-  id           String      @id @default(cuid())
-  storeId      String
-  store        Store       @relation(fields: [storeId], references: [id])
-  customerName String
-  customerPhone String
-  status       OrderStatus @default(PENDING)
-  totalCents   Int
-  items        OrderItem[]
-  payment      Payment?
-  createdAt    DateTime    @default(now())
+  id               String      @id @default(cuid())
+  storeId          String
+  store            Store       @relation(fields: [storeId], references: [id])
+  customerId       String?
+  customer         Customer?   @relation(fields: [customerId], references: [id])
+  customerName     String
+  customerPhone    String
+  customerAddress  String?
+  paymentMethod    String      @default("pix")
+  deliveryFeeCents Int         @default(0)
+  discountCents    Int         @default(0)
+  couponCode       String?
+  status           OrderStatus @default(PENDING)
+  totalCents       Int
+  items            OrderItem[]
+  payment          Payment?
+  createdAt        DateTime    @default(now())
 }
 
 model OrderItem {
@@ -113,6 +126,34 @@ model Payment {
   externalId String?
   amountCents Int
   createdAt  DateTime @default(now())
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id])
+  name      String
+  phone     String
+  address   String?
+  orders    Order[]
+  createdAt DateTime @default(now())
+  @@unique([storeId, phone])
+}
+
+model Coupon {
+  id            String    @id @default(cuid())
+  storeId       String
+  store         Store     @relation(fields: [storeId], references: [id])
+  code          String
+  discountType  String    // percent | fixed
+  discountValue Int
+  minOrderCents Int       @default(0)
+  maxUses       Int?
+  usedCount     Int       @default(0)
+  active        Boolean   @default(true)
+  expiresAt     DateTime?
+  createdAt     DateTime  @default(now())
+  @@unique([storeId, code])
 }
 
 model Notification {

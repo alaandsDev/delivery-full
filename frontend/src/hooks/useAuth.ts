@@ -15,6 +15,10 @@ export type AuthStore = {
   name: string;
   slug: string;
   description?: string;
+  whatsappNumber?: string;
+  deliveryFee?: number;
+  minOrderCents?: number;
+  openingHours?: string;
 };
 
 // Helpers com try-catch — localStorage lança em Safari privado e Android antigo

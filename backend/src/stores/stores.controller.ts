@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, ForbiddenException } from '@nestjs/common';
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsInt, Min } from 'class-validator';
 import { PrismaService } from '../prisma/prisma.service';
 import { Public } from '../common/guards/jwt.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -14,6 +14,10 @@ class CreateStoreDto {
 class UpdateStoreDto {
   @IsOptional() @IsString() name?: string;
   @IsOptional() @IsString() description?: string;
+  @IsOptional() @IsString() whatsappNumber?: string;
+  @IsOptional() @IsInt() @Min(0) deliveryFee?: number;
+  @IsOptional() @IsInt() @Min(0) minOrderCents?: number;
+  @IsOptional() @IsString() openingHours?: string;
 }
 
 @Controller('stores')
